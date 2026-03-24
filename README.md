@@ -1,79 +1,134 @@
+# SimWheel Receiver – Linux Port
 
-[![Get it on Google Play](https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg)](https://play.google.com/store/apps/details?id=com.ik.simwheel)
+Linux port of [SimWheeel_Receiver](https://github.com/imkh778/SimWheeel_Receiver_) by imkh778.
 
-# 🏎️ SimWheel Connect  
-**Turn Your Phone into a Steering Wheel for PC!**  
-
-Transform your **Android phone** into a powerful, customizable **steering wheel and game controller** for PC driving simulators like **Euro Truck Simulator 2 (ETS2)**, **Forza Horizon**, and more.  
-
-> 🛞💡 Perfect for sim racing fans without a physical wheel, or anyone who wants a portable, wireless setup.  
-> Control your games **intuitively** over Wi‑Fi — no cables, no hassle.  
+The Android app connects over Wi-Fi UDP and sends steering/throttle/brake data as JSON.  
+This receiver decodes it and forwards it to a virtual gamepad that Linux games can use.
 
 ---
 
-## 🚗 Key Features  
+## What changed from the Windows version
 
-### 🎮 Virtual Steering Wheel  
-- **Full rotation:** Up to **2520** 
-- **Realistic feel:** Smooth responsiveness and **auto‑centering animation**  
-- **Immersive control:** Tilt your phone to steer naturally  
+| Windows                        | Linux replacement                     |
+|-------------------------------|---------------------------------------|
+| `Winsock2` / `ws2tcpip`       | POSIX `sys/socket.h` / `netinet/in.h` |
+| `iphlpapi` GetAdaptersAddresses | `getifaddrs()` from `ifaddrs.h`     |
+| vJoy driver + `vJoyInterface.h` | Linux kernel **uinput** (`/dev/uinput`) |
+| `SOCKET`, `LONG`, `UINT`, etc. | Standard C++ types + aliases         |
+| `InetNtopW` (wide char)        | `inet_ntop` (standard narrow char)   |
+| Visual Studio `.sln` / `.vcxproj` | **Makefile**                       |
+| `vjoy_functions.cpp`           | `uinput_functions.cpp`               |
 
----
-
-### ⚙️ Customizable Controls  
-- **Drag & resize** any element to fit your hand and screen  
-- **On‑the‑fly adjustments** with quick settings mode  
-- Layout stays exactly how you like it  
-
----
-
-### 🕹️ Pedals & Buttons  
-- Smooth sliding **Throttle** and **Brake** controls  
-- Add extra buttons for lights, horn, or custom actions  
+All game logic, JSON parsing, axis math, and button mapping are **unchanged**.
 
 ---
 
-### 🌐 Wi‑Fi PC Communication  
-| Feature | Details |
-|---------|---------|
-| **Connection** | Local Wi‑Fi — no USB or Bluetooth needed |
-| **Detection** | Auto‑detect PC receiver or enter IP manually |
-| **Protocol** | Low‑latency **UDP** |
-| **Data Format** | Optimized **JSON** — sends only when needed |
+## Dependencies
+
+```bash
+# Ubuntu / Debian
+sudo apt install build-essential nlohmann-json3-dev
+
+# Fedora / RHEL
+sudo dnf install gcc-c++ json-devel
+
+# Arch Linux
+sudo pacman -S base-devel nlohmann-json
+```
+
+The uinput kernel module (ships with all major distros, just needs loading):
+
+```bash
+sudo modprobe uinput
+```
+
+To avoid `sudo` every time, add yourself to the `input` group and re-login:
+
+```bash
+sudo usermod -aG input $USER
+# then log out and back in
+```
 
 ---
 
-### 🖥️ PC Receiver App  
-Install the lightweight **SimWheel PC Receiver** on Windows:  
-- Live display of all incoming control values  
-- **vJoy integration** for seamless game controller emulation  
-- Supports **analog axes**, **digital buttons**, and **keyboard mapping** (e.g., horn → "H")  
+## Build
 
-[💻 **Download PC Receiver**](https://simwheel.netlify.app/)  
+```bash
+make
+```
 
 ---
 
-## 🧪 Current Capabilities  
-✅ Tested with ETS2 & Forza Horizon  
-✅ No USB or Bluetooth required  
-✅ Optimized JSON for minimal network load  
+## Run
 
-🚧 **Coming Soon:** Force Feedback support  
-🚧 **Not Yet Supported:** iOS devices  
+```bash
+sudo ./simwheel_receiver      # or without sudo if you set up the input group
+```
 
----
-
-## 🔐 Privacy & Ads  
-- **No user data collected**  
-- Future updates may include ads or in‑app purchases to support development  
+The program will:
+1. Print your local IP address(es) — enter one of these in the SimWheel Android app
+2. Ask for the steering range (or read it from `settings.json`)
+3. Create a virtual gamepad visible as `/dev/input/eventX`
+4. Listen on UDP port **4567** for data from the app
 
 ---
 
-## 👨‍💻 Built for Makers  
-Created with:  
-- **Flutter** (mobile app)  
-- **C++** (PC side)  
-- **Winsock2** for networking  
-- **vJoy API** for controller emulation  
+## Settings file
+
+`settings.json` is created automatically on first run:
+
+```json
+{
+  "steering_range_default": 0,   // 0 = prompt on startup; 90–2520 to hard-code
+  "is_log": true                 // print each received packet to stdout
+}
+```
 
 ---
+
+## Verify the virtual controller
+
+```bash
+# List input devices — look for "SimWheel Virtual Controller"
+cat /proc/bus/input/devices
+
+# Or with evtest (sudo apt install evtest)
+sudo evtest
+```
+
+In a sim game, configure the new "SimWheel Virtual Controller" as your wheel just like any other joystick.
+
+---
+
+## Axis mapping
+
+| Data field | uinput axis | Notes                          |
+|-----------|-------------|-------------------------------|
+| `steering` | `ABS_X`    | degrees → normalised → [0, 32768] |
+| `throttle` | `ABS_Y`    | 0–1 → [0, 32768]               |
+| `brake`    | `ABS_Z`    | 0–1 → [0, 32768]               |
+| `zaxis`    | `ABS_RZ`   | 0–1 → [0, 32768]               |
+| `horn`     | Button 1   |                                |
+| `"N"` keys | Button N   | numeric string keys            |
+
+---
+
+## Troubleshooting
+
+**`Cannot open /dev/uinput`**
+```bash
+sudo modprobe uinput
+sudo chmod 0660 /dev/uinput   # temporary
+# OR add yourself to the input group (permanent):
+sudo usermod -aG input $USER
+```
+
+**nlohmann/json not found**
+```bash
+sudo apt install nlohmann-json3-dev
+```
+
+**Port 4567 already in use**
+```bash
+sudo ss -ulpn | grep 4567
+```
