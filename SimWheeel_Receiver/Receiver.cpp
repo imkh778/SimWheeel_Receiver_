@@ -607,7 +607,6 @@ int main() {
             continue;
         }
 
-        std::cout << "\r\033[K [log]Received" << "\033[38;5;208m -> " << msg << "\033[0m" << std::flush;
 
         try {
             auto j = json::parse(buffer);
