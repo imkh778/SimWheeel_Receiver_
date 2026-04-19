@@ -1,0 +1,13 @@
+{
+  // IF YOU MESSED UP THE SETTINGS FILE, DELETE IT AND RUN THE PROGRAM AGAIN
+
+  // IMPORTANT: If you change the steering range, you must also change it
+  // in both the GAME and APP settings to match the new range,
+  // otherwise the steering will not work properly.
+
+  // Default steering range (minimum: 90, maximum: 2520)
+  "steering_range_default": 0,
+
+  // Enable or disable logging of control data
+  "is_log": true
+}

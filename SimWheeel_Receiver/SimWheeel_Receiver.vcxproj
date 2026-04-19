@@ -18,6 +18,9 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Receiver.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -126,17 +129,6 @@
       <AdditionalLibraryDirectories>C:\C++ pack\SDK\lib\amd64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="core.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Setting.cpp" />
-    <ClCompile Include="utils.cpp" />
-    <ClCompile Include="vjoy_functions.cpp" />
-    <ClCompile Include="wifi.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Lib_Simwheel.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
