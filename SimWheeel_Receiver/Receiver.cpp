@@ -581,9 +581,9 @@ int main() {
     sockaddr_in client;
     int clientLen = sizeof(client);
 
-    JOYSTICK_POSITION iReport{};
+  /*  JOYSTICK_POSITION iReport{};
     BYTE id = 1;
-    iReport.bDevice = id;
+    iReport.bDevice = id;*/
 
     std::unordered_set<std::string> allowedIPs;
     std::unordered_set<std::string> blockedIPs;
@@ -679,12 +679,12 @@ int main() {
                     g_Dash.connection = GetConnectionType(client);
                 }
 
-                if (j.contains("clatch")) {
-                    double clutch = j.at("clatch").get<double>();
+                if (j.contains("clutch ")) {
+                    double clutch = j.at("clutch ").get<double>();
                     g_Dash.hasClutch = true;
                     g_Dash.clutch = clutch;
                     SetAxis(MapToVJoyAxis(clutch * 2 - 1), vJoyId, HID_USAGE_RX);
-                    j.erase("clatch");
+                    j.erase("clutch ");
                 }
 
                 j.erase("steering");
