@@ -661,7 +661,7 @@ int main() {
                 g_Dash.deviceName = phoneName;
                 g_Dash.connection = reply["connection"].get<std::string>();
                 g_Dash.lastLog = "Handshake with " + phoneName + " OK.";
-                DashLog("\033[92m[+] Found the phone [" + phoneName + "]! via " + g_Dash.connection + "\033[0m");
+                //DashLog("\033[92m[+] Found the phone [" + phoneName + "]! via " + g_Dash.connection + "\033[0m");
                 continue;
             }
 
