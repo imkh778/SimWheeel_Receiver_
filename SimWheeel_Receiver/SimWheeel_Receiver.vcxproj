@@ -19,7 +19,17 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DashBoard.cpp" />
+    <ClCompile Include="KeyAndMouse.cpp" />
+    <ClCompile Include="Networking.cpp" />
     <ClCompile Include="Receiver.cpp" />
+    <ClCompile Include="SimWheelVJoy.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DashBoard.h" />
+    <ClInclude Include="KeyAndMouse.h" />
+    <ClInclude Include="Networking.h" />
+    <ClInclude Include="SimWheelVJoy.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
