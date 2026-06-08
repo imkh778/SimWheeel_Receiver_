@@ -14,7 +14,7 @@
 #include "Networking.h"
 #include "DashBoard.h"
 #include "SimWheelVJoy.h"
-
+#include "User.h";
 //UINT vJoyId = 1;
 
 
@@ -22,19 +22,6 @@
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "vJoyInterface.lib")
 
-#ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
-#define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
-#endif  
-
-
-void EnableVirtualTerminal() {
-    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-    if (hOut == INVALID_HANDLE_VALUE) return;
-    DWORD dwMode = 0;
-    if (!GetConsoleMode(hOut, &dwMode)) return;
-    dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-    SetConsoleMode(hOut, dwMode);
-}
 
 using json = nlohmann::json;
 
@@ -45,49 +32,6 @@ T clamp(T value, T minVal, T maxVal) {
     return value;
 }
 
-bool IsRunAsAdmin() {
-    BOOL fIsRunAsAdmin = FALSE;
-    PSID pAdministratorsGroup = NULL;
-    SID_IDENTIFIER_AUTHORITY SIDAuth = SECURITY_NT_AUTHORITY;
-    if (AllocateAndInitializeSid(&SIDAuth, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &pAdministratorsGroup)) {
-        CheckTokenMembership(NULL, pAdministratorsGroup, &fIsRunAsAdmin);
-        FreeSid(pAdministratorsGroup);
-    }
-    return fIsRunAsAdmin;
-}
-
-double userSteering() {
-    double userRange = 900.0; // Default
-    std::string input;
-
-    std::cout << "\n\033[92mEnter steering range (min 90, max 2520), or press Enter for default (900) :\033[0m";
-    std::getline(std::cin, input);
-
-    if (!input.empty()) {
-        try {
-            double tempRange = std::stod(input);
-            if (tempRange >= 90.0 && tempRange <= 2520.0) {
-                userRange = tempRange;
-            }
-            else {
-                std::cerr << "Range too low or high. Using default (900).\n" << std::endl;
-            }
-        }
-        catch (...) {
-            std::cerr << "Invalid input. Using default (900)." << std::endl;
-        }
-    }
-
-    std::cout << "Using steering range: " << userRange << std::endl;
-
-    return userRange;
-}
-
-void pressEnterToExit() {
-    std::cout << "Press Enter to exit...";
-    std::cin.ignore(10000, '\n');
-    std::cin.get();
-}
 
 
 int main() {
@@ -95,8 +39,10 @@ int main() {
 	Networking net;
     DashBoard dash;
     SimWheelVJoy vj;
+    User user;
 
-    EnableVirtualTerminal();
+
+    user.EnableVirtualTerminal();
 
     std::cout << "\033[36m===============================================\033[0m" << std::endl;
     std::cout << "\033[36m           SIMWHEEL PC SERVER v3.0            \033[0m" << std::endl;
@@ -104,11 +50,11 @@ int main() {
 
     if(vj.vjStatus()==1){
         WSACleanup();
-        pressEnterToExit();
+       user.pressEnterToExit();
         return 1;
 	}
 
-    if (!IsRunAsAdmin()) {
+    if (!user.IsRunAsAdmin()) {
         // Warning message remains here
         std::cout << "\033[93m[WARNING] NOT RUNNING AS ADMINISTRATOR. MOUSE AND KEYBOARD FUNCTIONS WILL NOT WORK IN GAMES!!!\nIGNORE IF YOU ARE NOT USING THEM.\033[0m\n";
     }
@@ -123,7 +69,7 @@ int main() {
     WSADATA wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
         std::cerr << "WSAStartup failed\n";
-        pressEnterToExit();
+        user.pressEnterToExit();
         return 1;
     }
 
@@ -155,7 +101,7 @@ int main() {
 
     //user steering range
 
-    double userRange = userSteering();
+    double userRange = user.userSteering();
     dash.g_Dash.userRange = userRange;
     std::cout << "\n";
     std::cout << "\033[96m>>> Application Ready. Waiting for app connection... <<<\033[0m\n\n";
@@ -166,12 +112,12 @@ int main() {
     sockaddr_in client;
     int clientLen = sizeof(client);
 
-  /*  JOYSTICK_POSITION iReport{};
-    BYTE id = 1;
-    iReport.bDevice = id;*/
+    JOYSTICK_POSITION iReport{};
+    iReport.bDevice = static_cast<BYTE>(vj.vJoyId);
 
-    std::unordered_set<std::string> allowedIPs;
-    std::unordered_set<std::string> blockedIPs;
+    std::unordered_set<uint32_t> allowedIPs;
+    std::unordered_set<uint32_t> blockedIPs;
+    int packetCount = 0;
 
     while (true) {
         int bytes = recvfrom(sock, buffer, bufSize - 1, 0,
@@ -184,11 +130,9 @@ int main() {
         buffer[bytes] = '\0';
         std::string msg(buffer);
 
-        char currentIPChars[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, &(client.sin_addr), currentIPChars, INET_ADDRSTRLEN);
-        std::string currentIPStr(currentIPChars);
+        uint32_t clientIp = client.sin_addr.s_addr;
 
-        if (blockedIPs.find(currentIPStr) != blockedIPs.end()) {
+        if (blockedIPs.find(clientIp) != blockedIPs.end()) {
             continue;
         }
 
@@ -196,7 +140,11 @@ int main() {
         try {
             auto j = json::parse(buffer);
 
-            if (allowedIPs.find(currentIPStr) == allowedIPs.end()) {
+            if (allowedIPs.find(clientIp) == allowedIPs.end()) {
+                char currentIPChars[INET_ADDRSTRLEN];
+                inet_ntop(AF_INET, &(client.sin_addr), currentIPChars, INET_ADDRSTRLEN);
+                std::string currentIPStr(currentIPChars);
+
                 std::string phoneName = "Unknown Phone";
                 if (j.contains("phoneName") && j["phoneName"].is_string()) {
                     phoneName = j["phoneName"].get<std::string>();
@@ -208,14 +156,14 @@ int main() {
                 std::string answer;
                 std::getline(std::cin, answer);
                 if (answer == "y" || answer == "Y" || answer == "yes" || answer == "Yes") {
-                    allowedIPs.insert(currentIPStr);
+                    allowedIPs.insert(clientIp);
                     std::cout << "\033[92mDevice allowed.\033[0m\n";
                     dash.g_Dash.initialized = false;
                 }
                 else {
                     std::cout << "\033[91mDevice blocked.\033[0m\n";
                     dash.g_Dash.initialized = false;
-                    blockedIPs.insert(currentIPStr);
+                    blockedIPs.insert(clientIp);
                     dash.UpdateDashboard();
                     continue;
                 }
@@ -268,59 +216,45 @@ int main() {
                     double clutch = j.at("clutch ").get<double>();
                     dash.g_Dash.hasClutch = true;
                     dash.g_Dash.clutch = clutch;
-                    SetAxis(vj.MapToVJoyAxis(clutch * 2 - 1), vj.vJoyId, HID_USAGE_RX);
-                    j.erase("clutch ");
+                    iReport.wAxisXRot = vj.MapToVJoyAxis(clutch * 2 - 1);
                 }
-
-                j.erase("steering");
-                j.erase("throttle");
-                j.erase("brake");
 
                 // 6. Feed to vJoy axes
                 double normSteer = steering / userRange;
                 LONG vJoyValue = clamp(vj.MapToVJoyAxis(normSteer), static_cast<LONG>(0), static_cast<LONG>(32768));
 
-                SetAxis(vJoyValue, vj.vJoyId, HID_USAGE_X);
-                SetAxis(vj.MapToVJoyAxis(throttle * 2 - 1), vj.vJoyId, HID_USAGE_Y);
-                SetAxis(vj.MapToVJoyAxis(brake * 2 - 1), vj.vJoyId, HID_USAGE_Z);
+                iReport.wAxisX = vJoyValue;
+                iReport.wAxisY = vj.MapToVJoyAxis(throttle * 2 - 1);
+                iReport.wAxisZ = vj.MapToVJoyAxis(brake * 2 - 1);
             }
-
-            /*   iReport.wAxisX = vJoyValue;
-               iReport.wAxisY = MapToVJoyAxis(throttle * 2 - 1);
-               iReport.wAxisZ = MapToVJoyAxis(brake * 2 - 1);*/
-
-
-               /* if (!UpdateVJD(id, &iReport)) {
-                    printf("Failed to update vJoy device\n");
-                }*/
 
             if (j.contains("zaxis")) {
                 double zaxis = j.at("zaxis").get<double>();
                 dash.g_Dash.hasZAxis = true;
                 dash.g_Dash.zaxis = zaxis;
-                SetAxis(vj.MapToVJoyAxis(zaxis * 2 - 1), vj.vJoyId, HID_USAGE_RZ);
-                j.erase("zaxis");
+                iReport.wAxisZRot = vj.MapToVJoyAxis(zaxis * 2 - 1);
             }
-            else {
+            if (j.contains("dx") && j.contains("dy")) {
                 double dx = j.at("dx").get<double>(); // Mouse relative movement
                 double dy = j.at("dy").get<double>();
                 km.moveMouse((int)dx, (int)dy);
-                j.erase("dx");
-                j.erase("dy");
             }
 
 
             std::string activeButtons = "";
+            iReport.lButtons = 0; // Reset buttons for vJoy batch
 
             if (j.contains("horn")) {
-                SetBtn(j["horn"], vj.vJoyId, static_cast<UCHAR>(1));
-                if (j["horn"].get<bool>()) activeButtons += "HORN ";
-                j.erase("horn");
+                bool hornPressed = j["horn"].get<bool>();
+                if (hornPressed) iReport.lButtons |= 1; // Assuming horn is button 1
+                if (hornPressed) activeButtons += "HORN ";
             }
 
             try {
-                for (auto it = j.begin(); it != j.end(); ) {
+                for (auto it = j.begin(); it != j.end(); ++it) {
                     std::string keyStr = it.key();
+                    if (keyStr.empty() || !isdigit(keyStr[0])) continue;
+
                     int buttonId = std::stoi(keyStr);
                     bool status = it.value().get<bool>();
 
@@ -332,11 +266,15 @@ int main() {
                         km.MouseClick(buttonId, status);
                     else if (buttonId >= 200)
                         km.keyBoardEvents(buttonId, status);
-                    else
-                        SetBtn(status, vj.vJoyId, static_cast<UCHAR>(buttonId));
-
-                    it = j.erase(it);
+                    else if (buttonId > 0 && buttonId <= 128) {
+                        if (status) {
+                            iReport.lButtons |= (1ULL << (buttonId - 1));
+                        }
+                    }
                 }
+                
+                // Perform vJoy batch update
+                UpdateVJD(vj.vJoyId, (PVOID)&iReport);
             }
             catch (...) {
 
@@ -349,7 +287,9 @@ int main() {
                 dash.g_Dash.lastLog = "Streaming data...";
             }
 
-           dash.UpdateDashboard();
+            if (packetCount++ % 10 == 0) {
+                dash.UpdateDashboard();
+            }
         }
         catch (json::exception& e) {
             std::cerr << "JSON parse error: " << e.what() << "\n";

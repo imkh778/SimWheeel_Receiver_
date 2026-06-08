@@ -59,6 +59,11 @@ void Networking::ShowLocalIP() {
 }
 
 std::string Networking::GetConnectionType(const sockaddr_in& clientAddr) {
+    uint32_t cIp = ntohl(clientAddr.sin_addr.s_addr);
+    if (connectionCache.find(cIp) != connectionCache.end()) {
+        return connectionCache[cIp];
+    }
+
     ULONG bufLen = 15000;
     IP_ADAPTER_ADDRESSES* addresses = (IP_ADAPTER_ADDRESSES*)malloc(bufLen);
     std::string connType = "unknown";
@@ -85,6 +90,7 @@ std::string Networking::GetConnectionType(const sockaddr_in& clientAddr) {
                         else connType = "ethernet";
 
                         free(addresses);
+                        connectionCache[cIp] = connType;
                         return connType;
                     }
                 }
@@ -93,5 +99,6 @@ std::string Networking::GetConnectionType(const sockaddr_in& clientAddr) {
         }
     }
     free(addresses);
+    connectionCache[cIp] = connType;
     return connType;
 }

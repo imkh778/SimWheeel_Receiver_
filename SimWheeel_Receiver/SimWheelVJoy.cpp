@@ -74,5 +74,5 @@ int SimWheelVJoy::vjStatus() {
         return 1;
     }
     std::cout << "vJoy device #" << vJoyId << " acquired\n";
-	return 0;
+	return 0;  
 }

@@ -11,3 +11,4 @@ class SimWheelVJoy
 		void checkVJoyOwnership();
 };
 
+ 

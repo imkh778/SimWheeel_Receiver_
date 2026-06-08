@@ -22,93 +22,48 @@ void KeyAndMouse::MouseClick(int button, bool isPressed) {
 
 WORD KeyAndMouse::customKeyToVK(int code) {
 
-    // -------------------------------
-    // LETTERS (A–Z)
-    // Custom: 200–225
-    // VK_A = 0x41
-    // -------------------------------
-    if (code >= 200 && code <= 225) {
-        return WORD(0x41 + (code - 200));  // 200→A, 201→B, etc.
+    if (code >= 200 && code <= 225) return WORD(0x41 + (code - 200));
+    if (code >= 300 && code <= 309) return WORD(0x30 + (code - 300));
+    if (code >= 400 && code <= 411) return WORD(VK_F1 + (code - 400));
+
+    switch (code) {
+        case 230: return VK_SPACE;
+        case 231: return VK_RETURN;     // Enter
+        case 232: return VK_BACK;       // Backspace
+        case 233: return VK_TAB;        // Tab
+        case 234: return VK_SHIFT;      // Shift
+        case 235: return VK_CONTROL;    // Ctrl
+        case 236: return VK_MENU;       // Alt
+        case 237: return VK_LWIN;       // Left Windows key
+        case 238: return VK_ESCAPE;     // ESC
+        case 239: return VK_CAPITAL;    // Caps Lock
+
+        case 250: return VK_OEM_MINUS;  // '-'
+        case 251: return VK_OEM_PLUS;   // '='
+        case 252: return VK_OEM_4;      // '['
+        case 253: return VK_OEM_6;      // ']'
+        case 254: return VK_OEM_5;      // '\'
+        case 255: return VK_OEM_1;      // ';'
+        case 256: return VK_OEM_7;      // '''
+        case 257: return VK_OEM_COMMA;  // ','
+        case 258: return VK_OEM_PERIOD; // '.'
+        case 259: return VK_OEM_2;      // '/'
+
+        case 350: return VK_LEFT;
+        case 351: return VK_RIGHT;
+        case 352: return VK_UP;
+        case 353: return VK_DOWN;
+
+        case 360: return VK_HOME;
+        case 361: return VK_END;
+        case 362: return VK_PRIOR;      // Page Up
+        case 363: return VK_NEXT;       // Page Down
+
+        case 370: return VK_DELETE;
+        case 371: return VK_INSERT;
+
+        default: return 0;
     }
-
-    // -------------------------------
-    // NUMBERS 0–9
-    // Custom: 300–309
-    // VK_0 = 0x30, VK_1 = 0x31, etc
-    // -------------------------------
-    if (code >= 300 && code <= 309) {
-        if (code == 300) return 0X30;
-        return WORD(0x30 + (code - 300));  // 301→1, 302→2, etc.
-    }
-
-    // -------------------------------
-    // FUNCTION KEYS F1–F12
-    // Custom: 400–411
-    // VK_F1 = 0x70
-    // -------------------------------
-    if (code >= 400 && code <= 411) {
-        return WORD(VK_F1 + (code - 400));
-    }
-
-    // -------------------------------
-    // SPECIAL KEYS
-    // -------------------------------
-
-    if (code == 230) return VK_SPACE;
-    if (code == 231) return VK_RETURN;     // Enter
-    if (code == 232) return VK_BACK;       // Backspace
-    if (code == 233) return VK_TAB;        // Tab
-    if (code == 234) return VK_SHIFT;      // Shift
-    if (code == 235) return VK_CONTROL;    // Ctrl
-    if (code == 236) return VK_MENU;       // Alt
-    if (code == 237) return VK_LWIN;       // Left Windows key
-    if (code == 238) return VK_ESCAPE;     // ESC
-    if (code == 239) return VK_CAPITAL;    // Caps Lock
-
-    // -------------------------------
-    // SYMBOL KEYS
-    // -------------------------------
-    if (code == 250) return VK_OEM_MINUS;     // '-'
-    if (code == 251) return VK_OEM_PLUS;      // '='
-    if (code == 252) return VK_OEM_4;         // '['
-    if (code == 253) return VK_OEM_6;         // ']'
-    if (code == 254) return VK_OEM_5;         // '\'
-    if (code == 255) return VK_OEM_1;         // ';'
-    if (code == 256) return VK_OEM_7;         // '''
-    if (code == 257) return VK_OEM_COMMA;     // ','
-    if (code == 258) return VK_OEM_PERIOD;    // '.'
-    if (code == 259) return VK_OEM_2;         // '/'
-
-    // -------------------------------
-    // ARROWS
-    // Custom: 350–353
-    // -------------------------------
-    if (code == 350) return VK_LEFT;
-    if (code == 351) return VK_RIGHT;
-    if (code == 352) return VK_UP;
-    if (code == 353) return VK_DOWN;
-
-    // -------------------------------
-    // PAGE KEYS
-    // -------------------------------
-    if (code == 360) return VK_HOME;
-    if (code == 361) return VK_END;
-    if (code == 362) return VK_PRIOR; // Page Up
-    if (code == 363) return VK_NEXT;  // Page Down
-
-    // -------------------------------
-    // DELETE / INSERT
-    // -------------------------------
-    if (code == 370) return VK_DELETE;
-    if (code == 371) return VK_INSERT;
-
-    //Mouse
-    //if (code == 372)return VK_LBUTTON;   // Left mouse button
-    //if (code == 373)return VK_RBUTTON;  // Right mouse button
-    //if (code == 374)return VK_MBUTTON; // Middle mouse button (wheel click)
-
-    // Unknown key
-    return 0;
 }
 
 void KeyAndMouse::keyBoardEvents(int code, bool isPressed) {
