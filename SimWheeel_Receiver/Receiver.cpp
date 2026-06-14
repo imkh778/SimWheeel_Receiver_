@@ -1,4 +1,5 @@
-﻿
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // pc_udp_receiver_with_vjoy.cpp
 // UDP receiver with vJoy integration: listens on port 4567, parses controls,
 // and feeds them into a vJoy virtual joystick.
