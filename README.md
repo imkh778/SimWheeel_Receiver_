@@ -1,7 +1,7 @@
 
 [![Get it on Google Play](https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg)](https://play.google.com/store/apps/details?id=com.ik.simwheel)
 
-# 🏎️ SimWheel Connect  
+# 🏎️ SimWheel Controller 
 **Turn Your Phone into a Steering Wheel for PC!**  
 
 Transform your **Android phone** into a powerful, customizable **steering wheel and game controller** for PC driving simulators like **Euro Truck Simulator 2 (ETS2)**, **Forza Horizon**, and more.  
