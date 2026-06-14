@@ -17,14 +17,6 @@ Transform your **Android phone** into a powerful, customizable **steering wheel 
 - **Full rotation:** Up to **2520** 
 - **Realistic feel:** Smooth responsiveness and **auto‑centering animation**  
 - **Immersive control:** Tilt your phone to steer naturally  
-
----
-
-### ⚙️ Customizable Controls  
-- **Drag & resize** any element to fit your hand and screen  
-- **On‑the‑fly adjustments** with quick settings mode  
-- Layout stays exactly how you like it  
-
 ---
 
 ### 🕹️ Pedals & Buttons  
@@ -36,7 +28,7 @@ Transform your **Android phone** into a powerful, customizable **steering wheel 
 ### 🌐 Wi‑Fi PC Communication  
 | Feature | Details |
 |---------|---------|
-| **Connection** | Local Wi‑Fi — no USB or Bluetooth needed |
+| **Connection** | Local Wi‑Fi — or USB|
 | **Detection** | Auto‑detect PC receiver or enter IP manually |
 | **Protocol** | Low‑latency **UDP** |
 | **Data Format** | Optimized **JSON** — sends only when needed |
@@ -63,9 +55,8 @@ Install the lightweight **SimWheel PC Receiver** on Windows:
 
 ---
 
-## 🔐 Privacy & Ads  
+## 🔐 Privacy 
 - **No user data collected**  
-- Future updates may include ads or in‑app purchases to support development  
 
 ---
 
@@ -77,3 +68,7 @@ Created with:
 - **vJoy API** for controller emulation  
 
 ---
+
+License
+
+Simwheel Receiver is licensed under the GNU General Public License v3.0 (GPL-3.0-or-later). See the LICENSE file for details.
